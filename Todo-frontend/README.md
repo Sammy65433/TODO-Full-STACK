@@ -279,4 +279,83 @@ git push
 ```
  testing whether the frontend can successfully send a request to the backend.
 
- 
+ Add these:
+
+```md
+31. Update the backend route to a test route
+```
+
+Instead of only using `/`, he changed it to a clearer test route like `/test`.
+
+```js
+app.get('/test', (req, res) => {
+  res.send('Hello from server')
+})
+```
+
+```md
+32. Update `App.jsx` to fetch from the test route
+```
+
+```jsx
+import { useEffect } from 'react'
+
+export default function App() {
+  async function test() {
+    const response = await fetch('http://localhost:3000/test')
+    const data = await response.json()
+    console.log(data)
+  }
+
+  useEffect(() => {
+    test()
+  }, [])
+
+  return (
+    <div>
+      Hello World!
+    </div>
+  )
+}
+```
+
+```md
+33. Parse the backend response
+```
+- Store the fetch response in a variable
+- Use `await response.json()`
+- Log the parsed data with `console.log(data)`
+
+```md
+34. Refresh the frontend and check the browser console
+```
+- Open the app in the browser
+- Open Inspect → Console
+- Refresh the page
+- Look for the logged data or any errors
+
+```md
+35. Notice the CORS error
+```
+At this point, the frontend request fails because:
+- frontend is on `localhost:5173`
+- backend is on `localhost:3000`
+
+These are different origins, so the browser blocks the request unless the backend allows it.
+
+```md
+36. Understand why the request is blocked
+```
+Browsers block requests between different ports by default for security reasons.
+
+The backend must explicitly allow requests from the frontend origin.
+
+```md
+37. Next step
+```
+The next thing he is about to do is configure the backend to allow requests from the frontend on port `5173`.
+
+```md
+38. Git note on commits
+```
+He said it does not really matter which terminal you commit from, but he usually commits from the main project folder so he can push everything together.
