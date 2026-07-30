@@ -15,14 +15,29 @@ export default function App() {
     getTodos()
   }, [])
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
 
     const todo = {
       text: inputRef.current.value
-    }
+    };
 
-    console.log(todo)
+    console.log(todo);
+
+    //Send as POST - step 96
+    const response = await fetch('http://localhost:3000/api/todos', {
+      method: 'POST',
+      body: JSON.stringify(todo),
+      header: {
+        'Content-Type': 'application/json'
+      }
+    })
+    const newtodo = await response.json();
+
+    console.log(newtodo);
+
+
+
   }
 
   return (
