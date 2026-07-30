@@ -204,8 +204,6 @@ After both are running, the next step is to test communication between the front
 ```
 
 
-New steps:
-
 ```md
 24. Update `App.jsx` to test backend communication
 ```
@@ -359,3 +357,157 @@ The next thing he is about to do is configure the backend to allow requests from
 38. Git note on commits
 ```
 He said it does not really matter which terminal you commit from, but he usually commits from the main project folder so he can push everything together.
+
+Add these next:
+
+```md
+39. Install `cors` in the backend
+```
+
+From the `backend` folder:
+
+```bash
+npm install cors
+```
+
+```md
+40. Import `cors` in `backend/index.js`
+```
+
+```js
+import cors from 'cors'
+```
+
+```md
+41. Enable CORS middleware
+```
+
+Add this before your routes:
+
+```js
+app.use(cors())
+```
+
+He said this is the simple version for now and allows requests from anywhere.
+
+```md
+42. Optional later: restrict CORS to the frontend origin
+```
+
+For development he is leaving it open, but later you can make it more specific:
+
+```js
+app.use(cors({
+  origin: 'http://localhost:5173'
+}))
+```
+
+```md
+43. Change the backend response to JSON
+```
+
+Since the frontend is using `response.json()`, the backend should return JSON instead of plain text.
+
+Update the route to:
+
+```js
+app.get('/test', (req, res) => {
+  res.json({ message: 'Hello from server' })
+})
+```
+
+```md
+44. Restart the backend server
+```
+
+If needed:
+
+```bash
+nodemon
+```
+
+or
+
+```bash
+node index.js
+```
+
+```md
+45. Refresh the frontend and check the console again
+```
+- Refresh the React app
+- Open Inspect → Console
+- You should now see the logged JSON data instead of the CORS error
+
+```md
+46. If backend setup is broken, recreate backend files
+```
+
+He walked someone through this reset process:
+
+- Stop the backend server
+- Delete:
+  - `node_modules`
+  - `package.json`
+  - `package-lock.json`
+
+Then recreate it:
+
+```bash
+npm init -y
+npm install express
+npm install cors
+```
+
+Then add back:
+
+```json
+"type": "module"
+```
+
+```md
+47. Important backend setup order
+```
+
+He emphasized:
+- always run `npm init -y` before installing packages
+
+```md
+48. Current working backend example
+```
+
+```js
+import express from 'express'
+import cors from 'cors'
+
+const app = express()
+const port = 3000
+
+app.use(cors())
+
+app.get('/test', (req, res) => {
+  res.json({ message: 'Hello from server' })
+})
+
+app.listen(port, () => {
+  console.log(`Listening on port: ${port}`)
+})
+```
+
+```md
+49. Current goal
+```
+
+At this point, the goal is to confirm:
+- backend runs on `3000`
+- frontend runs on `5173`
+- frontend can successfully fetch from `http://localhost:3000/test`
+- console shows the JSON response
+
+```md
+50. Current CORS takeaway
+```
+
+- Without `cors()`, frontend and backend on different ports cannot communicate
+- With `app.use(cors())`, the backend allows cross-origin requests
+- Later, you can restrict it to a specific origin like `http://localhost:5173`
