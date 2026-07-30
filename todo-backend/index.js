@@ -9,11 +9,11 @@ const port = 3000
 
 
 
-app.get('/', (req, res) => {
+app.get('/test', (req, res) => {
     res.send('Hello from server')
 })
 
-app.listen(3000, () => {
+app.listen(port, () => {
 console.log('Listenign on port:", port');
 
 })

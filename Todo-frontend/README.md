@@ -277,4 +277,6 @@ git push
 ```md
 30. Current focus
 ```
-The next thing he is doing is testing whether the frontend can successfully send a request to the backend.
+ testing whether the frontend can successfully send a request to the backend.
+
+ 
