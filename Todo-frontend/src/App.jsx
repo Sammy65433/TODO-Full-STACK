@@ -1,31 +1,47 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function App() {
+  const [todos, setTodos] = useState([])
+  const inputRef = useRef()
 
-  const [todos, setTodos] = useState([]);
-
-  async function getData() {
+  async function getTodos() {
     const response = await fetch('http://localhost:3000/api/todos')
     const data = await response.json()
-    console.log(data);
-    setTodos(data);
+    console.log(data)
+    setTodos(data)
   }
 
   useEffect(() => {
-    getData()
+    getTodos()
   }, [])
 
-  return
-  <div>
-    Hello Star Wars!
-    <ul>
-      {todos.map((todo) =>
-        <li key={todo._id}>
-          {todo.text}
-        </li>
-      )}
-    </ul>
+  function handleSubmit(e) {
+    e.preventDefault()
 
-  </div>
-    
+    const todo = {
+      text: inputRef.current.value
+    }
+
+    console.log(todo)
+  }
+
+  return (
+    <div>
+      <h1>Todos</h1>
+
+      <form onSubmit={handleSubmit}>
+        <input type="text" ref={inputRef} />
+        <button>Submit</button>
+      </form>
+
+      <ul>
+        {todos.map((todo) => (
+          <li key={todo._id}>
+            <input type="checkbox" checked={todo.completed} readOnly />
+            {todo.text}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
