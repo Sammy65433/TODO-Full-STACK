@@ -15,5 +15,17 @@ export default function App() {
     getData()
   }, [])
 
-  return <div>Hello Star Wars!</div>
+  return
+  <div>
+    Hello Star Wars!
+    <ul>
+      {todos.map((todo) =>
+        <li key={todo._id}>
+          {todo.text}
+        </li>
+      )}
+    </ul>
+
+  </div>
+    
 }
