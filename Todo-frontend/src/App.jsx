@@ -7,7 +7,6 @@ export default function App() {
   async function getTodos() {
     const response = await fetch('http://localhost:3000/api/todos')
     const data = await response.json()
-    console.log(data)
     setTodos(data)
   }
 
@@ -31,12 +30,18 @@ export default function App() {
     })
 
     const newTodo = await response.json()
-    console.log(newTodo)
-
     setTodos([...todos, newTodo])
 
-    inputRef.current.value = ''
-    inputRef.current.focus()
+    inputRef.current.value = '';
+    inputRef.current.focus();
+  }
+
+  async function handleDelete(id) {
+    await fetch(`http://localhost:3000/api/todos/${id}`, {
+      method: 'DELETE'
+    });
+
+    console.log(id)
   }
 
   return (
@@ -51,12 +56,11 @@ export default function App() {
       <ul>
         {todos.map((todo) => (
           <li key={todo._id}>
-            <input
-              type="checkbox"
-              checked={todo.completed}
-              onChange={() => {}}
-            />
+            <input type="checkbox" checked={todo.completed} onChange={() => {}} />
             {todo.text}
+            <button type="button" onClick={() => handleDelete(todo._id)}>
+              Delete
+            </button>
           </li>
         ))}
       </ul>
