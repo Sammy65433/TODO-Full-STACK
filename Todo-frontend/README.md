@@ -1005,3 +1005,209 @@ Next development options:
 - Backend-first: finish all CRUD routes, then build the UI
 - Frontend-first: build the UI with placeholder data, then connect each feature to backend routes as needed
 ```
+
+
+```md
+83. Add state to store fetched todos
+```
+
+In `App.jsx`, create a state variable as an empty array so it is safe to map over:
+
+```jsx
+const [todos, setTodos] = useState([])
+```
+
+He said he chose an empty array because he wants to map over the data later without errors.
+
+```md
+84. Save fetched todos into state
+```
+
+Instead of only logging the fetched data, store it:
+
+```jsx
+async function getTodos() {
+  const response = await fetch('http://localhost:3000/api/todos')
+  const data = await response.json()
+  console.log(data)
+  setTodos(data)
+}
+```
+
+```md
+85. Render the todos list
+```
+
+He rendered the list with a `ul` and mapped over `todos`:
+
+```jsx
+<ul>
+  {todos.map((todo) => (
+    <li key={todo._id}>
+      {todo.text}
+    </li>
+  ))}
+</ul>
+```
+
+```md
+86. Use MongoDB `_id` as the React key
+```
+
+He pointed out every MongoDB document gets an automatically generated `_id`, and that is ideal for the React `key`.
+
+```jsx
+key={todo._id}
+```
+
+```md
+87. Add a checkbox to each todo item
+```
+
+He then displayed the `completed` property too:
+
+```jsx
+<li key={todo._id}>
+  <input type="checkbox" checked={todo.completed} readOnly />
+  {todo.text}
+</li>
+```
+
+He used the schema fields:
+- `text`
+- `completed`
+
+```md
+88. Add a heading for the page
+```
+
+```jsx
+<h1>Todos</h1>
+```
+
+```md
+89. Create a form above the list
+```
+
+He added a basic form in `App.jsx` first instead of making a separate component too early:
+
+```jsx
+<form>
+  <input type="text" />
+  <button>Submit</button>
+</form>
+```
+
+```md
+90. Use `useRef` for the input instead of state
+```
+
+He chose an uncontrolled input with `useRef`.
+
+Import it:
+
+```jsx
+import { useEffect, useRef, useState } from 'react'
+```
+
+Create the ref:
+
+```jsx
+const inputRef = useRef()
+```
+
+Attach it to the input:
+
+```jsx
+<input type="text" ref={inputRef} />
+```
+
+```md
+91. Add a submit handler for the form
+```
+
+Attach an `onSubmit` handler:
+
+```jsx
+<form onSubmit={handleSubmit}>
+```
+
+Create the function:
+
+```jsx
+function handleSubmit(e) {
+  e.preventDefault()
+}
+```
+
+He said `preventDefault()` is important so the page does not refresh automatically.
+
+```md
+92. Test the form handler with a console log
+```
+
+He tested submission first before sending data anywhere:
+
+```jsx
+function handleSubmit(e) {
+  e.preventDefault()
+  console.log('test')
+}
+```
+
+```md
+93. Create a todo object from the input value
+```
+
+Inside `handleSubmit`, package the input into an object that matches the schema:
+
+```jsx
+function handleSubmit(e) {
+  e.preventDefault()
+
+  const todo = {
+    text: inputRef.current.value
+  }
+
+  console.log(todo)
+}
+```
+
+He explained:
+- `inputRef.current` gives the actual input element
+- `inputRef.current.value` gives the text the user typed
+
+```md
+94. The todo object only needs `text`
+```
+
+He said the backend/database will generate:
+- `_id`
+- `completed` default value
+
+So on the frontend, for now, the object only needs:
+
+```js
+{
+  text: inputRef.current.value
+}
+```
+
+```md
+95. Current stopping point
+```
+
+Right before break, the app could:
+- fetch todos
+- store them in state
+- render the list
+- render a form
+- capture user input with `useRef`
+- build the todo object
+- log the object on submit
+
+```md
+96. Next step after break
+```
+
+He said the next step is to send that todo object to the backend as a `POST` request so the server can save it to the database.
