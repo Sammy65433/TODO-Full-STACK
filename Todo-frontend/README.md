@@ -818,3 +818,190 @@ At this point the app now has:
 - frontend connected to backend
 - backend connected to MongoDB
 - a Todo schema and model ready for database operations
+
+
+
+```md
+72. Import the Todo model into `index.js`
+```
+
+He imported the model so the backend can query the database.
+
+```js
+import Todo from './models/todo.js'
+```
+
+
+```md
+73. Replace the test route with a todos API route
+```
+
+He changed the endpoint from the earlier test route to a real todos route.
+
+```js
+app.get('/api/todos', async (req, res) => {
+  const todos = await Todo.find()
+  res.json(todos)
+})
+```
+
+```md
+74. Make the route handler async
+```
+
+Because `Todo.find()` is asynchronous, the route should use `async` and `await`.
+
+```md
+75. Use `Todo.find()` to get all todos
+```
+
+He said:
+- `Todo.find()` returns all documents in the todos collection
+- you can pass nothing or an empty object
+- either way it returns everything
+
+Examples:
+
+```js
+const todos = await Todo.find()
+```
+
+or
+
+```js
+const todos = await Todo.find({})
+```
+
+```md
+76. Send the todos back as JSON
+```
+
+```js
+res.json(todos)
+```
+
+If the collection is empty, the frontend should receive:
+
+```js
+[]
+```
+
+That is the expected good result for a new collection.
+
+```md
+77. Update the frontend fetch URL
+```
+
+Since the backend endpoint changed, `App.jsx` should now fetch from:
+
+```js
+http://localhost:3000/api/todos
+```
+
+```md
+78. Rename the frontend test function if desired
+```
+
+He said he was changing the name from a temporary `test()` name to something clearer.
+
+For example:
+
+```jsx
+async function getTodos() {
+  const response = await fetch('http://localhost:3000/api/todos')
+  const data = await response.json()
+  console.log(data)
+}
+```
+
+```md
+79. Keep calling the fetch function inside `useEffect`
+```
+
+```jsx
+useEffect(() => {
+  getTodos()
+}, [])
+```
+
+```md
+80. Refresh the frontend and check the browser console
+```
+
+Expected result:
+- an empty array `[]`
+- or something like `Array(0)`
+
+He said this is a good sign because it means:
+- frontend talked to backend
+- backend talked to MongoDB
+- query ran successfully
+- collection exists but has no documents yet
+
+```md
+81. Understand what Mongoose created automatically
+```
+
+He pointed out that:
+- the database appeared
+- the todos collection appeared
+- he did not manually create them
+
+This happened automatically once the app made the request and Mongoose used the model.
+
+```md
+82. Current project milestone
+```
+
+At this point, all three layers are connected:
+- frontend
+- backend
+- database
+
+And the app can successfully read from the todos collection, even if it is currently empty.
+```
+
+
+He means there are **two valid ways** to build the app.
+
+Example 1, **backend-first**:
+- Build all API routes first
+- Then connect the frontend to them
+
+For a todo app, that would mean making:
+- `GET /api/todos`
+- `POST /api/todos`
+- `PUT /api/todos/:id`
+- `DELETE /api/todos/:id`
+
+Then later, in React, you build:
+- todo list display
+- add todo form
+- complete checkbox
+- delete button
+
+Example 2, **frontend-first**:
+- Build the UI first with placeholder data
+- Then add backend routes only when the UI needs real data
+
+For example:
+1. Build a React todo list with hardcoded todos
+2. Build an input and Add button
+3. Build a checkbox and Delete button
+4. Then replace fake data with:
+   - `GET /api/todos`
+   - `POST /api/todos`
+   - `PUT /api/todos/:id`
+   - `DELETE /api/todos/:id`
+
+So when he says:
+- “front end to back end” = build UI first, then create the needed route
+- “back end to front end” = build API first, then connect UI to it
+
+For your README notes, you could write:
+
+```md
+Next development options:
+- Backend-first: finish all CRUD routes, then build the UI
+- Frontend-first: build the UI with placeholder data, then connect each feature to backend routes as needed
+```
