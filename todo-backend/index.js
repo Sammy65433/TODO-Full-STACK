@@ -9,10 +9,22 @@ const port = 3000
 
 app.use(cors())
 
+    app.use(express.json());
+
+
+// GET  todos 
 app.get('/api/todos', async (req, res) => {
     const todos = await Todo.find()
     res.json(todos)
 })
+
+//POST create a todo
+app.post('/api/todos', async (req, res) => {
+    console.log(req.body)
+    const tdo = await Todo.create(req.body)
+    res.json(tdo);
+
+}) 
 
 app.listen(port, () => {
     console.log('Listening on port:', port)
