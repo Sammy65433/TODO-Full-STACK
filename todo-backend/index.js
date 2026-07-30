@@ -21,8 +21,8 @@ app.get('/api/todos', async (req, res) => {
 //POST create a todo
 app.post('/api/todos', async (req, res) => {
     console.log(req.body)
-    const tdo = await Todo.create(req.body)
-    res.json(tdo);
+    const todo = await Todo.create(req.body)
+    res.json(todo);
 
 }) 
 
