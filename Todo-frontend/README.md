@@ -511,3 +511,310 @@ At this point, the goal is to confirm:
 - Without `cors()`, frontend and backend on different ports cannot communicate
 - With `app.use(cors())`, the backend allows cross-origin requests
 - Later, you can restrict it to a specific origin like `http://localhost:5173`
+
+
+Add these:
+
+```md
+51. Install database-related backend packages
+```
+
+From the `backend` folder:
+
+```bash
+npm install mongoose dotenv
+```
+
+He installed both:
+- `mongoose` for MongoDB connection
+- `dotenv` for environment variables
+
+```md
+52. Create a database config file
+```
+
+In `backend`, create:
+
+```bash
+touch db.js
+```
+
+```md
+53. Add starter MongoDB connection code in `db.js`
+```
+
+```js
+import mongoose from 'mongoose'
+
+async function connectDB() {
+  try {
+    await mongoose.connect(process.env.MONGO_URL)
+    console.log('Connected to MongoDB')
+  } catch (e) {
+    console.log(e.message)
+  }
+}
+
+export default connectDB
+```
+
+```md
+54. Create a `.env` file in the backend
+```
+
+In `backend/.env` add:
+
+```env
+MONGO_URL=your_connection_string_here
+```
+
+```md
+55. Build the MongoDB connection string
+```
+
+He said your `MONGO_URL` should include:
+- username
+- password
+- database name
+
+Important:
+- remove the angle brackets like `<password>`
+- put your real password in that spot
+- put the database name between the `/` and `?`
+
+Example pattern:
+
+```env
+MONGO_URL=mongodb+srv://username:password@cluster-url/todos?retryWrites=true&w=majority
+```
+
+If using the non-SRV version, same idea:
+- database name still goes between `/` and `?`
+
+```md
+56. Get the connection string from MongoDB Atlas
+```
+
+Path he described:
+- Go to MongoDB Atlas
+- Go to `Project Overview` or `Clusters`
+- Click `Connect`
+- Click `Drivers`
+- Copy the connection string shown there
+
+```md
+57. Create an `.env.example` file
+```
+
+He recommended making an example file for projects so others know what variables are needed.
+
+Example:
+
+```env
+MONGO_URL=
+```
+
+This file should show the variable name only, not your real secret.
+
+```md
+58. Configure dotenv at the top of `index.js`
+```
+
+At the very top of `backend/index.js`, add:
+
+```js
+import 'dotenv/config'
+```
+
+He said to put this at the top because environment variables should be configured before anything else.
+
+```md
+59. Import the database connection function into `index.js`
+```
+
+In `backend/index.js`:
+
+```js
+import connectDB from './db.js'
+```
+
+He specifically noted to include the `.js` extension.
+
+```md
+60. Call `connectDB()` when the server starts
+```
+
+He said he likes to call it inside `app.listen()` after the server log.
+
+Example:
+
+```js
+app.listen(port, () => {
+  console.log(`Listening on port: ${port}`)
+  connectDB()
+})
+```
+
+```md
+61. Expected backend terminal messages
+```
+
+When everything works, you should see:
+- `Listening on port: 3000`
+- `Connected to MongoDB`
+
+```md
+62. Current backend focus
+```
+
+At this point:
+- frontend talks to backend
+- backend talks to database
+
+That completes the main connection setup foundation for the full-stack app.
+```
+
+If you want, your current full `index.js` is basically moving toward this:
+
+```js
+import 'dotenv/config'
+import express from 'express'
+import cors from 'cors'
+import connectDB from './db.js'
+
+const app = express()
+const port = 3000
+
+app.use(cors())
+
+app.get('/test', (req, res) => {
+  res.json({ message: 'Hello from server' })
+})
+
+app.listen(port, () => {
+  console.log(`Listening on port: ${port}`)
+  connectDB()
+})
+```
+
+
+
+
+
+```md
+63. Create a `models` folder in the backend
+```
+
+Inside `backend`, create a folder for models:
+
+```bash
+mkdir models
+```
+
+```md
+64. Create a Todo model file
+```
+
+Inside `backend/models`, create:
+
+```bash
+touch Todo.js
+```
+
+```md
+65. Import `mongoose` into the Todo model file
+```
+
+```js
+import mongoose from 'mongoose'
+```
+
+```md
+66. Create the Todo schema
+```
+
+He started the schema with:
+- `text`
+  - type `String`
+  - `required: true`
+- `completed`
+  - type `Boolean`
+  - `default: false`
+
+Example:
+
+```js
+const todoSchema = new mongoose.Schema({
+  text: {
+    type: String,
+    required: true
+  },
+  completed: {
+    type: Boolean,
+    default: false
+  }
+})
+```
+
+```md
+67. Create the Todo model from the schema
+```
+
+Use `mongoose.model()`.
+
+- First argument: the model name
+- He said this also determines the collection name
+
+Example:
+
+```js
+const Todo = mongoose.model('Todo', todoSchema)
+```
+
+```md
+68. Export the Todo model
+```
+
+```js
+export default Todo
+```
+
+```md
+69. Full `backend/models/Todo.js` example
+```
+
+```js
+import mongoose from 'mongoose'
+
+const todoSchema = new mongoose.Schema({
+  text: {
+    type: String,
+    required: true
+  },
+  completed: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const Todo = mongoose.model('Todo', todoSchema)
+
+export default Todo
+```
+
+```md
+70. Purpose of this step
+```
+
+He said:
+- the schema gives the data structure
+- the model lets you actually work with and retrieve the data
+
+```md
+71. Current focus
+```
+
+At this point the app now has:
+- frontend connected to backend
+- backend connected to MongoDB
+- a Todo schema and model ready for database operations
