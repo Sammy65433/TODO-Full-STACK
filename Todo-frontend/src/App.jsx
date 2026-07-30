@@ -29,19 +29,38 @@ export default function App() {
       body: JSON.stringify(todo)
     })
 
-    const newTodo = await response.json()
-    setTodos([...todos, newTodo])
+    await response.json()
 
-    inputRef.current.value = '';
-    inputRef.current.focus();
+    inputRef.current.value = ''
+    inputRef.current.focus()
+
+    getTodos()
   }
 
   async function handleDelete(id) {
     await fetch(`http://localhost:3000/api/todos/${id}`, {
       method: 'DELETE'
-    });
+    })
 
-    console.log(id)
+    getTodos()
+  }
+
+  async function handleUpdate(id) {
+    const todo = todos.find((todo) => todo._id === id)
+
+    todo.completed = !todo.completed
+
+    const response = await fetch(`http://localhost:3000/api/todos/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(todo)
+    })
+
+    console.log(response)
+
+    getTodos()
   }
 
   return (
@@ -56,7 +75,11 @@ export default function App() {
       <ul>
         {todos.map((todo) => (
           <li key={todo._id}>
-            <input type="checkbox" checked={todo.completed} onChange={() => {}} />
+            <input
+              type="checkbox"
+              checked={todo.completed}
+              onChange={() => handleUpdate(todo._id)}
+            />
             {todo.text}
             <button type="button" onClick={() => handleDelete(todo._id)}>
               Delete

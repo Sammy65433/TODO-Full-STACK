@@ -1524,3 +1524,314 @@ At this point you have:
 ```
 
 He said the checkbox will be used for `Update`, specifically updating the `completed` property of a todo document.
+
+
+```md
+112. Simplify state syncing by reusing `getTodos()`
+```
+
+He changed direction slightly and said instead of manually updating state after every create or delete, you can just call `getTodos()` again.
+
+Example after create:
+
+```jsx
+getTodos()
+```
+
+Example after delete:
+
+```jsx
+getTodos()
+```
+
+He said this is a little simpler because:
+- `getTodos()` already fetches the latest data
+- `getTodos()` already updates state
+- it keeps frontend state synced with the database
+
+Tradeoff:
+- it makes another request to the backend
+
+```md
+113. Use `getTodos()` after POST instead of manually appending to state
+```
+
+Instead of:
+
+```jsx
+setTodos([...todos, newTodo])
+```
+
+he switched to:
+
+```jsx
+getTodos()
+```
+
+So `handleSubmit` becomes more like:
+
+```jsx
+async function handleSubmit(e) {
+  e.preventDefault()
+
+  const todo = {
+    text: inputRef.current.value
+  }
+
+  const response = await fetch('http://localhost:3000/api/todos', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(todo)
+  })
+
+  await response.json()
+
+  inputRef.current.value = ''
+  inputRef.current.focus()
+
+  getTodos()
+}
+```
+
+```md
+114. Use `getTodos()` after DELETE instead of filtering local state
+```
+
+Instead of:
+
+```jsx
+setTodos(todos.filter((todo) => todo._id !== id))
+```
+
+he changed it to:
+
+```jsx
+getTodos()
+```
+
+So `handleDelete` becomes:
+
+```jsx
+async function handleDelete(id) {
+  await fetch(`http://localhost:3000/api/todos/${id}`, {
+    method: 'DELETE'
+  })
+
+  getTodos()
+}
+```
+
+```md
+115. Start wiring up Update with the checkbox
+```
+
+He said the checkbox controls the last CRUD operation: `Update`.
+
+Replace the temporary empty handler with:
+
+```jsx
+onChange={() => handleUpdate(todo._id)}
+```
+
+```md
+116. Create `handleUpdate(id)` in the frontend
+```
+
+He created a new async handler:
+
+```jsx
+async function handleUpdate(id) {
+
+}
+```
+
+This should receive the clicked todo’s `_id`.
+
+```md
+117. Find the clicked todo from React state
+```
+
+He used the local `todos` state to find the current todo document so he could inspect its current `completed` value.
+
+```jsx
+const todo = todos.find((todo) => todo._id === id)
+```
+
+He said this matters because:
+- you need to know the current value of `completed`
+- then you can flip it
+
+```md
+118. Flip the `completed` value locally first
+```
+
+He temporarily updated the todo object locally:
+
+```jsx
+todo.completed = !todo.completed
+```
+
+This switches:
+- `false` → `true`
+- `true` → `false`
+
+He also used console logs before and after to test it.
+
+```jsx
+console.log(todo)
+todo.completed = !todo.completed
+console.log(todo)
+```
+
+```md
+119. Send the updated todo in a PUT request
+```
+
+He said update is similar to POST.
+
+Frontend fetch should:
+- use `PUT`
+- include the todo id in the path
+- send the updated todo as JSON in the body
+
+```jsx
+await fetch(`http://localhost:3000/api/todos/${id}`, {
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(todo)
+})
+```
+
+Important:
+- the URL must include the slash before `${id}`
+
+Correct:
+
+```jsx
+`http://localhost:3000/api/todos/${id}`
+```
+
+```md
+120. Refresh frontend state after PUT
+```
+
+Just like create and delete, he reused `getTodos()` afterward.
+
+```jsx
+getTodos()
+```
+
+So `handleUpdate` is moving toward:
+
+```jsx
+async function handleUpdate(id) {
+  const todo = todos.find((todo) => todo._id === id)
+
+  todo.completed = !todo.completed
+
+  await fetch(`http://localhost:3000/api/todos/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(todo)
+  })
+
+  getTodos()
+}
+```
+
+```md
+121. Add the backend PUT route
+```
+
+In `index.js`, he added:
+
+```js
+app.put('/api/todos/:id', async (req, res) => {
+  const updatedTodo = await Todo.findByIdAndUpdate(
+    req.params.id,
+    req.body
+  )
+
+  console.log(updatedTodo)
+  res.json(updatedTodo)
+})
+```
+
+He emphasized:
+- route path is `/api/todos/:id`
+- second argument must be `req.body`
+- that is the updated todo coming from the frontend
+
+```md
+122. Optional improvement: return the updated document instead of the old one
+```
+
+He mentioned Mongoose can return the updated version by adding:
+
+```js
+{ new: true }
+```
+
+So a better version is:
+
+```js
+app.put('/api/todos/:id', async (req, res) => {
+  const updatedTodo = await Todo.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  )
+
+  res.json(updatedTodo)
+})
+```
+
+```md
+123. How he tested the update
+```
+
+He said:
+- click the checkbox
+- refresh the page
+- if it stays checked, the update persisted in MongoDB
+
+That confirmed:
+- the PUT route is working
+- MongoDB is updating the document
+- `completed` is being saved correctly
+
+```md
+124. Common update mistakes he debugged
+```
+
+He corrected a few issues:
+- missing slash before `${id}` in the PUT URL
+- forgetting to pass `req.body` as the second argument in `findByIdAndUpdate`
+- missing/misplaced curly brackets in `App.jsx`
+- code accidentally outside `handleUpdate`
+
+```md
+125. Current CRUD milestone
+```
+
+At this point the app has all CRUD pieces wired up:
+
+- `Create` via form submit and POST
+- `Read` via `getTodos()` and GET
+- `Delete` via button and DELETE
+- `Update` via checkbox and PUT
+
+And the frontend now stays synced by reusing:
+
+```jsx
+getTodos()
+```
+
+after each mutation.
+```
