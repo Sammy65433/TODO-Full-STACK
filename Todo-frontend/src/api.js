@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:3000/api/todos'
+const BASE_URL = `${import.meta.env.VITE_BASE_URL}/api/todos`
 
 export async function getTodos() {
     const response = await fetch(BASE_URL)

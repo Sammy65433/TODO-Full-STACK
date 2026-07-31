@@ -2496,3 +2496,200 @@ At this stage:
 - frontend refactor: components and optional `api.js`
 - next major goal after refactor is deployment
 ```
+
+
+
+
+
+
+
+
+
+
+
+```md
+Render backend deployment steps
+```
+
+1. Go to `render.com`
+2. Open your `Dashboard`
+3. Click `New`
+4. Choose `Web Service`
+5. Connect your GitHub account if needed
+6. Select your full-stack project repository
+7. On the setup page, configure the backend service
+Add these:
+
+```md
+8. Choose the free instance type
+```
+
+- Select the `Free` plan
+- He noted free instances spin down after inactivity
+
+```md
+9. Add backend environment variables in Render
+```
+
+This is important because your backend `.env` file is **not** on GitHub.
+
+Add your backend env var in Render:
+- key: `MONGO_URL`
+- value: your **actual full MongoDB connection string**
+
+Important:
+- include your real username and password in the connection string
+- do **not** just use the example placeholder values
+
+```md
+10. Update backend port logic before deploying
+```
+
+He added support for Render’s port environment variable.
+
+In `backend/index.js`, change your port setup to:
+
+```js
+const port = process.env.PORT || 3000
+```
+
+This means:
+- locally it uses `3000`
+- on Render it uses Render’s provided port
+
+```md
+11. Push the port change to GitHub before deploying
+```
+
+After updating the backend port logic:
+
+```bash
+git add .
+git commit -m "support production port"
+git push
+```
+
+```md
+12. Make sure MongoDB Atlas allows access
+```
+
+He said to make sure your MongoDB Atlas setup accepts the deployed backend connection.
+
+Main things to verify:
+- connection string is correct
+- Atlas network access allows connections
+
+He mentioned allowing access from anywhere, at least for now, so Render can connect.
+
+```md
+13. Deploy the backend service
+```
+
+Once settings and env vars are ready, create/deploy the Render web service.
+
+```md
+14. Test the deployed backend URL
+```
+
+After deployment, Render gives you a backend URL.
+
+That URL is now your deployed API base URL.
+
+He indicated you should be able to open it and use routes like your API endpoints on Render.
+
+```md
+15. Free-tier behavior note
+```
+
+He said if you stop using it for a while, the free instance may spin down and take a little time to wake back up again.
+
+```md
+Backend service settings
+```
+
+- **Name**: something like `todo-backend`
+- **Language**: `Node`
+- **Root Directory**: `backend`
+  - or whatever your backend folder is actually named
+  - it must match the exact folder name in your repo
+
+- **Build Command**:
+```bash
+npm install
+```
+
+- **Start Command**:
+```bash
+node index
+```
+
+He said:
+- use `node index` because your main server file is `index.js`
+- do **not** use `nodemon`
+- `nodemon` is only for development
+
+```md
+Important notes
+```
+
+- Root directory is the backend folder inside the full-stack repo
+- If your folder name is capitalized, match it exactly
+- If your server file had a different name, your start command would use that instead
+  - for example `node server`
+
+```md
+Likely next step after this
+```
+
+After backend setup, the next thing will likely be:
+- add backend environment variables on Render
+- deploy
+- then do a similar process for the frontend
+
+
+
+
+
+
+
+
+
+
+
+He finished the **backend deploy** and started the **frontend deploy** on Render.
+
+What he just did for frontend:
+
+- Clicked `New`
+- Chose `Static Site`
+- Connected the **same GitHub repo**
+- Made a **new Render project** just for the frontend
+- Changed the frontend service name to something like:
+  - `todo-frontend`
+
+Then he started configuring frontend-specific settings:
+
+- **Root Directory** should be your frontend folder
+  - for example `frontend`
+  - and it must match the exact folder name/casing in your repo
+
+- **Build Command**:
+```bash
+npm run build
+```
+
+He explained:
+- this creates the production-ready frontend
+- Vite outputs that into a `dist` folder
+- `dist` stands for distribution
+- older setups sometimes called this `build`
+
+So the key new thing is:
+- frontend on Render should be deployed as a **Static Site**
+- not a web service
+- with root directory = frontend folder
+- build command = `npm run build`
+
+He was likely about to talk next about:
+- the publish directory, which should probably be `dist`
+- and then environment variables for the frontend backend URL
