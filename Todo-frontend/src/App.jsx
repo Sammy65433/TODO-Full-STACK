@@ -1,95 +1,54 @@
-
 import './App.css'
-
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import Header from './components/Header.jsx'
+import Form from './components/Form.jsx'
+import TodoList from './components/TodoList.jsx'
+import {
+  getTodos,
+  createTodo,
+  deleteTodo,
+  updateTodo
+} from './api.js'
 
 export default function App() {
   const [todos, setTodos] = useState([])
-  const inputRef = useRef()
 
-  async function getTodos() {
-    const response = await fetch('http://localhost:3000/api/todos')
-    const data = await response.json()
+  async function loadTodos() {
+    const data = await getTodos()
     setTodos(data)
   }
 
   useEffect(() => {
-    getTodos()
+    loadTodos()
   }, [])
 
-  async function handleSubmit(e) {
-    e.preventDefault()
-
-    const todo = {
-      text: inputRef.current.value
-    }
-
-    const response = await fetch('http://localhost:3000/api/todos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(todo)
-    })
-
-    await response.json()
-
-    inputRef.current.value = ''
-    inputRef.current.focus()
-
-    getTodos()
+  async function handleCreate(todo) {
+    await createTodo(todo)
+    loadTodos()
   }
 
   async function handleDelete(id) {
-    await fetch(`http://localhost:3000/api/todos/${id}`, {
-      method: 'DELETE'
-    })
-
-    getTodos()
+    await deleteTodo(id)
+    loadTodos()
   }
 
   async function handleUpdate(id) {
     const todo = todos.find((todo) => todo._id === id)
-
     todo.completed = !todo.completed
 
-    const response = await fetch(`http://localhost:3000/api/todos/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(todo)
-    })
-
-    console.log(response)
-
-    getTodos()
+    await updateTodo(id, todo)
+    loadTodos()
   }
 
   return (
     <div>
-      <h1>Todos List</h1>
-
-      <form onSubmit={handleSubmit}>
-        <input type="text" ref={inputRef} />
-        <button>Submit</button>
-      </form>
-
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo._id}>
-            <input
-              type="checkbox"
-              checked={todo.completed}
-              onChange={() => handleUpdate(todo._id)}
-            />
-            {todo.text}
-            <button type="button" onClick={() => handleDelete(todo._id)}>
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+      <Header />
+      <Form handleCreate={handleCreate} />
+      <TodoList
+        todos={todos}
+        handleDelete={handleDelete}
+        handleUpdate={handleUpdate}
+      />
     </div>
   )
 }

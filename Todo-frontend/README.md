@@ -2137,3 +2137,362 @@ Most likely next:
 - then frontend refactoring out of `App.jsx`
 - possibly prep for deployment tomorrow
 ```
+
+
+
+
+he added new frontend refactor steps.
+
+
+```md
+145. Frontend refactor goal
+```
+
+He said now that the app works, the frontend should be organized better because everything is currently inside `App.jsx`.
+
+He is splitting the UI into components.
+
+Planned components:
+- `Header`
+- `Form`
+- `TodoList`
+
+He said this is easier to do near the end, after the app already works.
+
+```md
+146. Create a `components` folder in the frontend
+```
+
+Inside `frontend/src`, create:
+
+```bash
+mkdir components
+```
+
+```md
+147. Create `Header.jsx`
+```
+
+Inside `frontend/src/components`, create:
+
+```bash
+touch Header.jsx
+```
+
+Put:
+
+```jsx
+export default function Header() {
+  return (
+    <header>
+      <h1>To dos List</h1>
+    </header>
+  )
+}
+```
+
+```md
+148. Import and render `Header` in `App.jsx`
+```
+
+In `App.jsx`:
+
+```jsx
+import Header from './components/Header.jsx'
+```
+
+Then replace the old heading with:
+
+```jsx
+<Header />
+```
+
+```md
+149. Create `Form.jsx`
+```
+
+Inside `frontend/src/components`, create:
+
+```bash
+touch Form.jsx
+```
+
+He started by moving the form into its own component.
+
+At first he passed:
+- `handleSubmit`
+- `inputRef`
+
+Then he changed direction and moved more of the logic into the `Form` component itself.
+
+```md
+150. Final direction for the form refactor
+```
+
+He said:
+- all logic related to the input ref should live inside the `Form` component
+- `preventDefault()` is also related to form submission, so that should live in the form too
+- this led him to rename the function from `handleSubmit` to `handleCreate`
+
+Reason:
+- `handleCreate` matches the CRUD pattern better
+- it also matches:
+  - `handleDelete`
+  - `handleUpdate`
+
+```md
+151. `Form.jsx` should own the input ref
+```
+
+He moved:
+- `useRef`
+- input clearing
+- focusing
+- form submission wrapper
+
+into the `Form` component.
+
+So the `Form` component should:
+- import `useRef`
+- create its own `inputRef`
+- prevent default
+- build the todo object
+- pass the todo up through a prop function
+
+```md
+152. New `Form.jsx` pattern
+```
+
+This is the pattern he was moving toward:
+
+```jsx
+import { useRef } from 'react'
+
+export default function Form({ handleCreate }) {
+  const inputRef = useRef()
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+
+    const todo = {
+      text: inputRef.current.value
+    }
+
+    await handleCreate(todo)
+
+    inputRef.current.value = ''
+    inputRef.current.focus()
+  }
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input type="text" ref={inputRef} />
+      <button>Submit</button>
+    </form>
+  )
+}
+```
+
+Key idea:
+- `Form` handles form-specific logic
+- `App` still owns state and CRUD handlers
+
+```md
+153. Update `App.jsx` to use `handleCreate` instead of the old form logic
+```
+
+He said the reason the app component still holds some functions is because:
+- `App` owns the `todos` state
+
+So the create function in `App.jsx` becomes simpler and just handles data creation:
+
+```jsx
+async function handleCreate(todo) {
+  await createTodo(todo)
+  loadTodos()
+}
+```
+
+This means:
+- `App` no longer needs `inputRef`
+- `App` no longer needs `preventDefault()`
+- `App` no longer needs direct form element handling
+
+```md
+154. Create `TodoList.jsx`
+```
+
+Inside `frontend/src/components`, create:
+
+```bash
+touch TodoList.jsx
+```
+
+He said the todo list needs:
+- the `todos` state variable
+- the `handleUpdate` function
+- also `handleDelete`
+
+```md
+155. `TodoList.jsx` props
+```
+
+The todo list component should receive:
+- `todos`
+- `handleDelete`
+- `handleUpdate`
+
+Because:
+- `App` owns the state
+- `TodoList` just renders it and calls the handlers
+
+```md
+156. `TodoList.jsx` example
+```
+
+```jsx
+export default function TodoList({ todos, handleDelete, handleUpdate }) {
+  return (
+    <ul>
+      {todos.map((todo) => (
+        <li key={todo._id}>
+          <input
+            type="checkbox"
+            checked={todo.completed}
+            onChange={() => handleUpdate(todo._id)}
+          />
+          {todo.text}
+          <button type="button" onClick={() => handleDelete(todo._id)}>
+            Delete
+          </button>
+        </li>
+      ))}
+    </ul>
+  )
+}
+```
+
+```md
+157. Update `App.jsx` to use components
+```
+
+The simplified `App.jsx` should now move toward this shape:
+
+```jsx
+import './App.css'
+import { useEffect, useState } from 'react'
+import Header from './components/Header.jsx'
+import Form from './components/Form.jsx'
+import TodoList from './components/TodoList.jsx'
+import {
+  getTodos,
+  createTodo,
+  deleteTodo,
+  updateTodo
+} from './api.js'
+
+export default function App() {
+  const [todos, setTodos] = useState([])
+
+  async function loadTodos() {
+    const data = await getTodos()
+    setTodos(data)
+  }
+
+  useEffect(() => {
+    loadTodos()
+  }, [])
+
+  async function handleCreate(todo) {
+    await createTodo(todo)
+    loadTodos()
+  }
+
+  async function handleDelete(id) {
+    await deleteTodo(id)
+    loadTodos()
+  }
+
+  async function handleUpdate(id) {
+    const todo = todos.find((todo) => todo._id === id)
+    todo.completed = !todo.completed
+
+    await updateTodo(id, todo)
+    loadTodos()
+  }
+
+  return (
+    <div>
+      <Header />
+      <Form handleCreate={handleCreate} />
+      <TodoList
+        todos={todos}
+        handleDelete={handleDelete}
+        handleUpdate={handleUpdate}
+      />
+    </div>
+  )
+}
+```
+
+```md
+158. Why he changed the names
+```
+
+He said naming was part of the reason for the pause.
+
+The idea is:
+- `handleCreate` = create a new todo
+- `handleDelete` = delete a todo
+- `handleUpdate` = update a todo
+
+This matches the CRUD pattern better than mixing everything under `handleSubmit`.
+
+```md
+159. API.js is still optional
+```
+
+He confirmed:
+- `api.js` is not mandatory for capstone
+- but it is helpful when the project gets bigger
+- backend and frontend folder structure are more important
+
+```md
+160. Important frontend structure notes for capstone
+```
+
+He said:
+- use a `components` folder
+- if using React Router, also use a `pages` folder
+- page-level components should go in `pages`
+
+```md
+161. Important backend import reminder
+```
+
+He hit an error because of a missing backend file extension.
+
+Reminder:
+- backend imports need `.js`
+
+Example:
+
+```js
+import todoRoutes from './routes/todo.js'
+```
+
+and
+
+```js
+import Todo from '../models/todo.js'
+```
+
+```md
+162. Current direction after this point
+```
+
+At this stage:
+- backend refactor: routes and controllers
+- frontend refactor: components and optional `api.js`
+- next major goal after refactor is deployment
+```

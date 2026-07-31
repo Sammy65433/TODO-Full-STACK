@@ -39,7 +39,7 @@ export async function updateTodo(req, res) {
         const updatedTodo = await Todo.findByIdAndUpdate(
             req.params.id,
             req.body,
-            { new: true }
+            { returnDocument: 'after' }
         )
         res.json(updatedTodo)
     } catch (error) {
