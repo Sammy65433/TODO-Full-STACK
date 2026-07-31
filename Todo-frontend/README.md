@@ -1835,3 +1835,305 @@ getTodos()
 
 after each mutation.
 ```
+
+```md
+126. Add `try/catch` to backend routes
+```
+
+He said a good next improvement is adding error handling around each backend route.
+
+Pattern:
+
+```js
+try {
+  // route logic
+} catch (error) {
+  console.log(error.message)
+  res.status(500).json({ error: error.message })
+}
+```
+
+He also mentioned:
+- sometimes you do not want to send too much error detail to the frontend
+- you may want more generic messages later
+
+```md
+127. Add status codes to backend responses
+```
+
+He talked about adding proper status codes, for example:
+- `200` for OK
+- `201` for successful create
+- `400` for bad request
+- `500` for server error
+
+Examples:
+- `POST` can use `201`
+- `GET`, `PUT`, `DELETE` commonly use `200`
+
+```md
+128. Add `try/catch` to frontend fetch functions too
+```
+
+He said frontend fetch functions can also have `try/catch`.
+
+That means:
+- `getTodos`
+- `handleSubmit`
+- `handleDelete`
+- `handleUpdate`
+
+can each catch and log errors.
+
+```md
+129. Begin refactoring backend into separate files
+```
+
+He said the code-along kept everything in single files for simplicity, but now that it works, it is a good time to refactor.
+
+Current issue:
+- too much in `index.js`
+- too much in `App.jsx`
+
+He started with the backend first.
+
+```md
+130. Create a `routes` folder in the backend
+```
+
+Inside `backend`, create:
+
+```bash
+mkdir routes
+```
+
+```md
+131. Create a todo routes file
+```
+
+Inside `backend/routes`, create:
+
+```bash
+touch todo.js
+```
+
+```md
+132. Create an Express Router in `routes/todo.js`
+```
+
+He started the file with:
+
+```js
+import express from 'express'
+
+const router = express.Router()
+```
+
+```md
+133. Import the Todo model into the router file
+```
+
+Because the route logic uses the model, move that import into the route file:
+
+```js
+import Todo from '../models/todo.js'
+```
+
+He noted:
+- go back one folder with `../`
+- include `.js`
+
+```md
+134. Move all todo route logic from `index.js` into the router file
+```
+
+He said:
+- `app.get` becomes `router.get`
+- `app.post` becomes `router.post`
+- `app.delete` becomes `router.delete`
+- `app.put` becomes `router.put`
+
+```md
+135. Use shorter paths inside the router file
+```
+
+Because the router will be mounted at `/api/todos` in `index.js`, the route file no longer needs to repeat `/api/todos`.
+
+So inside `routes/todo.js`, use:
+
+```js
+router.get('/')
+router.post('/')
+router.delete('/:id')
+router.put('/:id')
+```
+
+```md
+136. Export the router from `routes/todo.js`
+```
+
+At the bottom:
+
+```js
+export default router
+```
+
+```md
+137. Import todo routes into `index.js`
+```
+
+In `backend/index.js`:
+
+```js
+import todoRoutes from './routes/todo.js'
+```
+
+```md
+138. Mount the router with `app.use`
+```
+
+He said an Express Router is basically middleware, so you import it and use it with `app.use`.
+
+In `index.js`:
+
+```js
+app.use('/api/todos', todoRoutes)
+```
+
+This means:
+- the base path is defined once in `index.js`
+- the route file only needs `/` and `/:id`
+
+```md
+139. Remove old todo route logic from `index.js`
+```
+
+After moving the routes, `index.js` should stay cleaner and only keep:
+- imports
+- middleware
+- mounted routes
+- server startup
+- database connection
+
+```md
+140. Refactored backend structure so far
+```
+
+At this point backend is moving toward:
+
+```bash
+backend/
+  db.js
+  index.js
+  models/
+    todo.js
+  routes/
+    todo.js
+```
+
+```md
+141. Current `index.js` after route refactor
+```
+
+```js
+import 'dotenv/config'
+import express from 'express'
+import cors from 'cors'
+import connectDB from './db.js'
+import todoRoutes from './routes/todo.js'
+
+const app = express()
+const port = 3000
+
+app.use(cors())
+app.use(express.json())
+app.use('/api/todos', todoRoutes)
+
+app.listen(port, () => {
+  console.log('Listening on port:', port)
+  connectDB()
+})
+```
+
+```md
+142. Current `routes/todo.js` after route refactor
+```
+
+```js
+import express from 'express'
+import Todo from '../models/todo.js'
+
+const router = express.Router()
+
+router.get('/', async (req, res) => {
+  try {
+    const todos = await Todo.find()
+    res.json(todos)
+  } catch (error) {
+    console.log(error.message)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.post('/', async (req, res) => {
+  try {
+    const postTodo = await Todo.create(req.body)
+    res.status(201).json(postTodo)
+  } catch (error) {
+    console.log(error.message)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.delete('/:id', async (req, res) => {
+  try {
+    const deletedTodo = await Todo.findByIdAndDelete(req.params.id)
+    res.json(deletedTodo)
+  } catch (error) {
+    console.log(error.message)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+router.put('/:id', async (req, res) => {
+  try {
+    const updatedTodo = await Todo.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    )
+    res.json(updatedTodo)
+  } catch (error) {
+    console.log(error.message)
+    res.status(500).json({ error: error.message })
+  }
+})
+
+export default router
+```
+
+```md
+143. End-of-session summary
+```
+
+He said you did a lot:
+- set up the full-stack app
+- connected frontend to backend
+- connected backend to MongoDB
+- built a simple CRUD todo app
+- added backend error handling
+- started backend refactoring with Express Router
+
+```md
+144. Likely next step
+```
+
+His partial said they may:
+- keep working on it a bit more
+- do a little more refactoring
+
+Most likely next:
+- more backend cleanup
+- then frontend refactoring out of `App.jsx`
+- possibly prep for deployment tomorrow
+```

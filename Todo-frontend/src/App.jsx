@@ -1,3 +1,6 @@
+
+import './App.css'
+
 import { useEffect, useRef, useState } from 'react'
 
 export default function App() {
@@ -65,7 +68,7 @@ export default function App() {
 
   return (
     <div>
-      <h1>Todos</h1>
+      <h1>Todos List</h1>
 
       <form onSubmit={handleSubmit}>
         <input type="text" ref={inputRef} />

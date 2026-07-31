@@ -421,3 +421,358 @@ At this point you have:
 - GET `/api/todos` working
 - frontend successfully fetching todos from the database
 ```
+
+
+
+
+
+
+
+
+
+```md
+Quick overall summary
+
+Project structure
+```bash
+todo-fullstack/
+  frontend/
+  backend/
+```
+
+```md
+Main setup flow
+```
+
+1. Create the main project folder
+2. Create the React frontend with Vite
+3. Create the backend folder
+4. Run `npm init -y` in backend
+5. Add `"type": "module"` to backend `package.json`
+6. Install backend packages:
+```bash
+npm install express cors mongoose dotenv
+```
+7. Create backend files:
+- `index.js`
+- `db.js`
+- `.env`
+- `.env.example`
+- `models/Todo.js`
+- later `routes/todo.js`
+
+```md
+Important backend dependencies
+```
+
+Install these in backend:
+```bash
+npm install express cors mongoose dotenv
+```
+
+Optional dev dependency:
+```bash
+npm install -D nodemon
+```
+
+```md
+Important files not to miss
+```
+
+Backend:
+- `index.js`
+- `db.js`
+- `.env`
+- `.env.example`
+- `models/Todo.js`
+- `routes/todo.js`
+- `.gitignore`
+
+Frontend:
+- `App.jsx`
+- `App.css` if styling
+- existing Vite setup files
+
+```md
+Important `.gitignore`
+```
+
+In `backend/.gitignore`:
+```gitignore
+node_modules/
+.env
+```
+
+Do not commit your real `.env`.
+
+```md
+Important GitHub rule
+```
+
+- Create the GitHub repo empty
+- Do **not** click `Add a README` on GitHub after pushing local code
+- If you want a README, create it locally
+
+```md
+Important env var rule
+```
+
+Your env variable name must match exactly.
+
+If `.env` has:
+```env
+MONGO_URL=...
+```
+
+Then `db.js` must use:
+```js
+process.env.MONGO_URL
+```
+
+```md
+MongoDB connection string rule
+```
+
+Your MongoDB string must include:
+- username
+- password
+- database name
+
+And:
+- remove angle brackets like `<password>`
+- put database name between `/` and `?`
+
+Example:
+```env
+MONGO_URL=mongodb+srv://username:password@cluster-url/todos?retryWrites=true&w=majority
+```
+
+```md
+Core backend setup
+```
+
+`db.js`:
+```js
+import mongoose from 'mongoose'
+
+async function connectDB() {
+  try {
+    await mongoose.connect(process.env.MONGO_URL)
+    console.log('Connected to MongoDB')
+  } catch (e) {
+    console.log(e.message)
+  }
+}
+
+export default connectDB
+```
+
+`models/Todo.js`:
+```js
+import mongoose from 'mongoose'
+
+const todoSchema = new mongoose.Schema({
+  text: {
+    type: String,
+    required: true
+  },
+  completed: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const Todo = mongoose.model('Todo', todoSchema)
+
+export default Todo
+```
+
+```md
+Backend middleware not to miss
+```
+
+In `index.js`:
+```js
+app.use(cors())
+app.use(express.json())
+```
+
+These are critical.
+
+Without them:
+- frontend and backend will not communicate across ports
+- `req.body` may be `undefined`
+
+```md
+Core frontend ideas
+```
+
+In `App.jsx`:
+- use `useEffect` to fetch todos on initial load
+- use `useState([])` to store todos
+- use `useRef()` for the input
+- use `fetch()` for CRUD operations
+
+```md
+CRUD endpoints built
+```
+
+- `GET /api/todos`
+- `POST /api/todos`
+- `PUT /api/todos/:id`
+- `DELETE /api/todos/:id`
+
+```md
+How frontend stayed in sync
+```
+
+At first you can update state manually, but the simpler final approach was:
+
+```js
+getTodos()
+```
+
+after:
+- POST
+- PUT
+- DELETE
+
+That keeps the frontend synced with the latest database data.
+
+```md
+Important route refactor
+```
+
+He refactored backend routes into a separate file.
+
+`index.js`:
+```js
+import todoRoutes from './routes/todo.js'
+
+app.use('/api/todos', todoRoutes)
+```
+
+`routes/todo.js` uses:
+```js
+router.get('/')
+router.post('/')
+router.put('/:id')
+router.delete('/:id')
+```
+
+Important:
+- when using router mounting like this, do **not** repeat `/api/todos` inside the router file
+
+```md
+Backend import rule not to miss
+```
+
+In backend imports, include `.js`:
+```js
+import connectDB from './db.js'
+import Todo from '../models/Todo.js'
+```
+
+Also file casing must match exactly:
+- `Todo.js` vs `todo.js`
+
+```md
+Main common errors and what they usually mean
+```
+
+`404 Not Found`
+- wrong frontend fetch URL
+- wrong backend route
+- forgot slash before `${id}`
+- backend not reloaded after route changes
+
+`Unexpected token '<'`
+- backend returned HTML error page instead of JSON
+- usually caused by wrong route or server error
+
+`ERR_CONNECTION_REFUSED`
+- backend is not running
+
+`CORS policy error`
+- missing:
+```js
+app.use(cors())
+```
+
+`req.body` is undefined
+- missing:
+```js
+app.use(express.json())
+```
+
+Mongo validation error for `text`
+- blank input
+- missing `text`
+- schema requires text
+
+Mongo auth errors
+- wrong username/password in connection string
+- wrong env variable
+- old working connection string may help
+
+```md
+Quick backend reset if things break badly
+```
+
+Stop backend, then delete:
+- `node_modules`
+- `package.json`
+- `package-lock.json`
+
+Then recreate:
+```bash
+npm init -y
+npm install express cors mongoose dotenv
+```
+
+Add back:
+```json
+"type": "module"
+```
+
+```md
+What was completed
+```
+
+By the end, you had:
+- frontend setup
+- backend setup
+- MongoDB connected
+- Todo model created
+- full CRUD working
+- backend try/catch added
+- backend route refactor started with Express Router
+
+```md
+What he specifically wants for capstone so far
+```
+
+- definitely use a `routes` folder
+- he will get back to you on whether he wants a `controllers` folder
+- deployment is tomorrow’s main goal
+
+```md
+Best short “don’t forget” checklist
+```
+
+- `npm init -y` before installing backend packages
+- add `"type": "module"`
+- add `.env` and `.env.example`
+- add `app.use(cors())`
+- add `app.use(express.json())`
+- make sure `MONGO_URL` matches exactly
+- include `.js` in backend imports
+- use correct route paths
+- mount router with:
+```js
+app.use('/api/todos', todoRoutes)
+```
+- then use `/` and `/:id` inside `routes/todo.js`
+- call `getTodos()` after POST, PUT, DELETE
+- do not click `Add a README` on GitHub after pushing local code
+```
