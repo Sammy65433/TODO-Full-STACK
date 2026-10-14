@@ -2693,3 +2693,387 @@ So the key new thing is:
 He was likely about to talk next about:
 - the publish directory, which should probably be `dist`
 - and then environment variables for the frontend backend URL
+
+
+
+
+
+
+
+```md
+Full deployment steps
+```
+
+```md
+Backend deployment on Render
+```
+
+1. Go to `render.com`
+2. Open `Dashboard`
+3. Click `New`
+4. Choose `Web Service`
+5. Connect your GitHub account
+6. Select your full-stack repository
+7. Configure the backend service
+
+Backend settings:
+- **Name**: something like `todo-backend`
+- **Language**: `Node`
+- **Root Directory**: `backend`
+  - must match your actual backend folder name exactly
+- **Build Command**:
+```bash
+npm install
+```
+- **Start Command**:
+```bash
+node index
+```
+
+Important:
+- do **not** use `nodemon`
+- `nodemon` is only for development
+
+8. Choose the `Free` instance type
+
+9. Add backend environment variables in Render
+
+Add:
+- key: `MONGO_URL`
+- value: your real MongoDB connection string
+
+Important:
+- include your actual username and password
+- include your database name
+- this is required because backend `.env` is not on GitHub
+
+10. Update backend port logic before deploying
+
+In backend `index.js`:
+
+```js
+const port = process.env.PORT || 3000
+```
+
+This allows:
+- local development to use `3000`
+- Render production to use its own port
+
+11. Push the backend port change to GitHub
+
+```bash
+git add .
+git commit -m "support production port"
+git push
+```
+
+12. Make sure MongoDB Atlas allows the deployed backend to connect
+
+Check:
+- connection string is correct
+- Atlas network access allows outside connections
+- for now, allow access broadly if needed
+
+13. Deploy the backend
+
+14. After deployment, copy your backend Render URL
+
+Example:
+```txt
+https://your-backend-name.onrender.com
+```
+
+15. Test backend URL
+- open the Render backend URL
+- test your API route such as:
+```txt
+https://your-backend-name.onrender.com/api/todos
+```
+
+```md
+Frontend deployment on Render
+```
+
+1. Go back to Render `Dashboard`
+2. Click `New`
+3. Choose `Static Site`
+4. Connect the same GitHub repository
+5. Configure the frontend service
+
+Frontend settings:
+- **Name**: something like `todo-frontend`
+- **Branch**: usually `main`
+- **Root Directory**: `frontend`
+  - must match your actual frontend folder name exactly
+- **Build Command**:
+```bash
+npm run build
+```
+- **Publish Directory**:
+```txt
+dist
+```
+
+He explained:
+- Vite creates a `dist` folder for production
+- `dist` is the folder Render should publish
+
+```md
+Frontend env variable setup
+```
+
+In local frontend `.env`:
+
+```env
+VITE_BASE_URL=http://localhost:3000
+```
+
+Important:
+- frontend `.env` goes in the frontend root
+- not in `src`
+- not in `public`
+- if using Vite env vars, the key must start with `VITE_`
+
+He later removed his frontend `.env` from GitHub and ignored it.
+
+```md
+Update frontend API code to use env variable
+```
+
+In `api.js`:
+
+```js
+const BASE_URL = `${import.meta.env.VITE_BASE_URL}/api/todos`
+```
+
+Important:
+- only put the backend base URL in the env variable
+- do **not** include `/api/todos` in the env value
+- append `/api/todos` in code
+
+```md
+Frontend env variable on Render
+```
+
+In Render frontend service environment variables, add:
+
+- key: `VITE_BASE_URL`
+- value: your deployed backend Render URL up to `.com`
+
+Example:
+
+```txt
+VITE_BASE_URL=https://your-backend-name.onrender.com
+```
+
+Important:
+- do **not** include `/api/todos`
+- just the first part of the backend URL
+
+```md
+If frontend `.env` was accidentally pushed
+```
+
+He removed it from GitHub and re-created it locally.
+
+Reason:
+- it is not very sensitive in this case
+- but he meant to ignore it
+- backend `.env` is the critical one that should definitely not be pushed
+
+```md
+If Publish Directory error happens
+```
+
+If you see:
+
+```txt
+Publish directory dist does not exist
+```
+
+Check:
+- frontend is deployed as a **Static Site**
+- root directory is the frontend folder
+- build command is `npm run build`
+- publish directory is `dist`
+
+Also test locally:
+
+```bash
+cd frontend
+npm run build
+```
+
+This should create a `dist` folder.
+
+```md
+Auto deploy behavior
+```
+
+He said:
+- once connected to GitHub
+- future pushes will automatically redeploy
+- same idea as Netlify
+
+So:
+- changes to backend trigger backend redeploy
+- changes to frontend trigger frontend redeploy
+
+```md
+Free tier note
+```
+
+He said:
+- free instances spin down after inactivity
+- they take a little time to wake back up
+- that is normal on free hosting
+
+```md
+Testing after deployment
+```
+
+1. Open the deployed frontend URL
+2. Open browser inspect if needed
+3. Try:
+- add todo
+- update todo with checkbox
+- delete todo
+4. Expect actions to feel a little slower than localhost
+5. If nothing shows, inspect for errors and check your frontend env variable
+
+```md
+Recommended deployment combo
+```
+
+He said:
+- backend: use **Render**
+- frontend: Render works too
+- frontend could also use **Netlify** or **Vercel**
+- but for backend he recommends **Render**
+
+```md
+Quick final checklist
+```
+
+Backend:
+- `process.env.PORT || 3000`
+- `MONGO_URL` set in Render
+- root directory = `backend`
+- build = `npm install`
+- start = `node index`
+
+Frontend:
+- root directory = `frontend`
+- build = `npm run build`
+- publish directory = `dist`
+- `VITE_BASE_URL` set to backend Render URL
+- `api.js` uses:
+```js
+const BASE_URL = `${import.meta.env.VITE_BASE_URL}/api/todos`
+```
+
+```md
+What he recommended overall
+```
+
+- backend on Render
+- frontend on Render is fine
+- frontend on Netlify or Vercel is also fine
+- but backend should be on Render
+```
+
+
+
+```md
+163. Frontend deployment note for React Router
+```
+
+He said this does **not** matter much for the current todo app because it has no multiple pages, but it **will** matter for your capstone if you use React Router.
+
+```md
+164. Go to your deployed frontend service on Render
+```
+
+- Open your frontend deployment
+- In the left navigation, find the `Redirects / Rewrites` section
+
+```md
+165. Add a rewrite rule for React Router
+```
+
+Add a rule that says:
+
+- **Source**:
+```txt
+/*
+```
+
+- **Destination**:
+```txt
+/index.html
+```
+
+- **Action**:
+```txt
+Rewrite
+```
+
+Then save it.
+
+```md
+166. Why this rewrite rule is needed
+```
+
+He explained:
+- React is a single-page application
+- there is really only one HTML file, `index.html`
+- React Router only simulates multiple pages
+- if Render tries to directly open a route like `/login`, it may fail unless you add a fallback rule
+
+This rewrite tells Render:
+- if it cannot find a matching HTML file for a route
+- fall back to `index.html`
+- then React Router takes over in the browser
+
+```md
+167. Important scope of this step
+```
+
+For the current todo app:
+- not very important
+- because there are no multiple pages or navigation
+
+For capstone:
+- important
+- because you will be expected to use React Router
+
+```md
+168. Same idea applies on other frontend hosts
+```
+
+He said this is also something you would need to do on Netlify if you used Netlify.
+
+So the concept is not Render-specific:
+- React Router apps need a fallback rewrite/redirect rule in production
+
+```md
+169. Current deployment summary
+```
+
+At this point, deployment setup includes:
+
+- backend deployed to Render
+- frontend deployed to Render
+- frontend connected to backend using `VITE_BASE_URL`
+- backend using `process.env.PORT || 3000`
+- React Router rewrite rule added for future multi-page frontend support
+
+```md
+170. Transition to capstone discussion
+```
+
+After deployment steps, he said the next thing is:
+- go over capstone requirements
+- talk about next week
+- possibly one final task before the end
+```
